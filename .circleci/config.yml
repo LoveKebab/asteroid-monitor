@@ -24,3 +24,5 @@ jobs:
       # specify any bash command here prefixed with `run: `
       - run: go get gopkg.in/yaml.v2
       - run: go get github.com/gorilla/mux
+      - run: curl -sfL https://raw.githubusercontent.com/securego/gosec/master/install.sh | sh -s -- -b $GOPATH/bin latest
+      - run: gosec ${HOME}/src/github.com/LoveKebab/asteroid-monitor
