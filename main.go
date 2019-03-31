@@ -166,10 +166,10 @@ func nasaNeoBrowse() {
 			for _, CloseApproachData := range nasaData.NearEarthObjects[i].CloseApproachData {
 				fmt.Println("Asteroid Speed in Kilometers Per Hour:", CloseApproachData.RelativeVelocity.KilometersPerHour)
 			}
-			fmt.Println("More information at:", NearEarthObject.NasaJplURL)
-			fmt.Println("\n")
+			fmt.Println("More information at: " + NearEarthObject.NasaJplURL + "\n")
 		}
 	}
+
 }
 
 func main() {
@@ -178,7 +178,7 @@ func main() {
 	router := mux.NewRouter()
 
 	// Routes for api calls.
-	router.HandleFunc("/test", HelloWorld).Methods("GET")
+	router.HandleFunc("/api", HelloWorld).Methods("GET")
 
 	// Serve files from this directory if no api routes are hit
 	router.PathPrefix("/").Handler(http.FileServer(http.Dir("www")))
@@ -196,6 +196,6 @@ func main() {
 
 // HelloWorld API Reponse
 func HelloWorld(response http.ResponseWriter, request *http.Request) {
-	response.Write([]byte("Hello World"))
+	response.Write([]byte("Hello World!"))
 	return
 }
