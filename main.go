@@ -156,26 +156,28 @@ func nasaNeoBrowse() {
 		panic(err)
 	}
 
-	asteroid := (nasaData.NearEarthObjects[0].IsPotentiallyHazardousAsteroid)
-
-	if asteroid != true {
-		fmt.Println("Asteroid Name:", nasaData.NearEarthObjects[0].Name)
-		fmt.Println("Designation:", nasaData.NearEarthObjects[0].Designation)
-		fmt.Println("Asteroid Potentially Hazardous:", nasaData.NearEarthObjects[0].IsPotentiallyHazardousAsteroid)
-		fmt.Println("Absolute Magnitude:", nasaData.NearEarthObjects[0].AbsoluteMagnitudeH)
-		fmt.Println("Size in KM's:", nasaData.NearEarthObjects[0].EstimatedDiameter.Kilometers.EstimatedDiameterMax)
-		fmt.Println("More information at:", nasaData.NearEarthObjects[0].NasaJplURL)
+	for i, NearEarthObject := range nasaData.NearEarthObjects {
+		if NearEarthObject.IsPotentiallyHazardousAsteroid {
+			fmt.Println("Asteroid Name:", NearEarthObject.Name)
+			fmt.Println("Designation:", NearEarthObject.Designation)
+			fmt.Println("Asteroid Potentially Hazardous:", NearEarthObject.IsPotentiallyHazardousAsteroid)
+			fmt.Println("Absolute Magnitude:", NearEarthObject.AbsoluteMagnitudeH)
+			fmt.Println("Size in KM's:", NearEarthObject.EstimatedDiameter.Kilometers.EstimatedDiameterMax)
+			for _, CloseApproachData := range nasaData.NearEarthObjects[i].CloseApproachData {
+				fmt.Println("Asteroid Speed in Kilometers Per Hour:", CloseApproachData.RelativeVelocity.KilometersPerHour)
+			}
+			fmt.Println("More information at:", NearEarthObject.NasaJplURL)
+			fmt.Println("\n")
+		}
 	}
 }
 
 func main() {
-
 	nasaNeoBrowse()
 
 	router := mux.NewRouter()
 
 	// Routes for api calls.
-	// Your api routes go here.
 	router.HandleFunc("/test", HelloWorld).Methods("GET")
 
 	// Serve files from this directory if no api routes are hit
@@ -184,7 +186,7 @@ func main() {
 	srv := &http.Server{
 		Handler: router,
 		Addr:    ":" + port,
-		// Good practice: enforce timeouts for servers you create!
+		// Enforcement of timeouts
 		WriteTimeout: 15 * time.Second,
 		ReadTimeout:  15 * time.Second,
 	}
@@ -192,6 +194,7 @@ func main() {
 	log.Fatalf("Fatal server error: %v", srv.ListenAndServe())
 }
 
+// HelloWorld API Reponse
 func HelloWorld(response http.ResponseWriter, request *http.Request) {
 	response.Write([]byte("Hello World"))
 	return
