@@ -1,3 +1,12 @@
+# Config Files
+config.yaml
+conf.yaml
+conf.yml
+config.yaml 
+
+# Sample Data
+sampleoutput.json
+
 # Binaries for programs and plugins
 *.exe
 *.exe~
