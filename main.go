@@ -8,9 +8,8 @@ import (
 	"net/http"
 	"time"
 
-	"gopkg.in/yaml.v2"
-
 	"github.com/gorilla/mux"
+	"gopkg.in/yaml.v2"
 )
 
 const port = "10443"
@@ -123,7 +122,7 @@ func (c *conf) getConf() *conf {
 	return c
 }
 
-func nasaNeoBrowse() {
+func nasaNeoBrowse() []byte {
 
 	var c conf
 	c.getConf()
@@ -149,8 +148,15 @@ func nasaNeoBrowse() {
 		panic(err)
 	}
 
+	return body
+
+}
+
+func main() {
+	b := nasaNeoBrowse()
+
 	var nasaData = new(nasaReturnData)
-	err = json.Unmarshal(body, &nasaData)
+	err := json.Unmarshal(b, &nasaData)
 	if err != nil {
 		log.Println("Error Unmarshaling JSON Data. \n[ERROR] -", err)
 		panic(err)
@@ -169,11 +175,6 @@ func nasaNeoBrowse() {
 			fmt.Println("More information at: " + NearEarthObject.NasaJplURL + "\n")
 		}
 	}
-
-}
-
-func main() {
-	nasaNeoBrowse()
 
 	router := mux.NewRouter()
 
