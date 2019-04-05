@@ -12,7 +12,7 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-const port = ":10444" // add to config
+const port = ":10443" // add to config
 const nasaURL = "https://api.nasa.gov/neo/rest/v1/neo/browse?api_key=%s"
 
 // look into using viper
