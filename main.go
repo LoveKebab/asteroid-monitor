@@ -174,28 +174,10 @@ func main() {
 			fmt.Println("More information at: " + NearEarthObject.NasaJplURL + "\n")
 		}
 	}
-	/*
-		templ := `
-		<body>
-			{{ range $index, $element := . }}
-			<p>Asteroid Name: {{ $element.Name }}</p>
-			<p>Asteroid Designation: {{ $element.Designation }}</p>
-			<p>Asteroid Potentially Hazardous: {{ $element.IsPotentiallyHazardousAsteroid }}</p>
-			<p>Asteroid Magnitude:  {{ $element.AbsoluteMagnitudeH }}</p>
-			<p>Asteroid Size in KM's: {{ $element.AbsoluteMagnitudeH }}</p>
-			<p>More information at: {{ $element.NasaJplURL }}</p>
-			<br>
-			{{ end }}
-		</body>
-		`
-		renderer, _ := template.New("basic").Parse(templ)
-	*/
 
-	var renderer = template.Must(template.ParseFiles("index.html"))
+	renderer := template.Must(template.ParseFiles("index.html"))
 
-	fs := http.FileServer(http.Dir("static/"))
-	http.Handle("/static/", http.StripPrefix("/static/", fs))
-
+	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("static"))))
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		renderer.Execute(w, objects)
 	})
