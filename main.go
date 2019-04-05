@@ -3,17 +3,16 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"html/template"
 	"io/ioutil"
 	"log"
 	"net/http"
+	"text/template"
 	"time"
 
-	"github.com/gorilla/mux"
 	"gopkg.in/yaml.v2"
 )
 
-const port = ":10443" // add to config
+const port = ":10444" // add to config
 const nasaURL = "https://api.nasa.gov/neo/rest/v1/neo/browse?api_key=%s"
 
 // look into using viper
@@ -129,7 +128,7 @@ func (c *conf) getConf() *conf {
 }
 
 func nasaNeoBrowse(c conf) (*nasaReturnData, error) {
-	var apiKey = "DEMO_KEY" //c.Apikey
+	apiKey := c.Apikey
 	var apiURL = fmt.Sprintf(nasaURL, apiKey)
 
 	request, err := http.NewRequest("GET", apiURL, nil)
@@ -175,42 +174,38 @@ func main() {
 			fmt.Println("More information at: " + NearEarthObject.NasaJplURL + "\n")
 		}
 	}
-	templ := `
-	<body>
-		{{ range $index, $element := . }}
-		<p>{{ $element.Name }}</p>
-		<p>{{ $element.Designation }}</p>
-		<p>{{ $element.IsPotentiallyHazardousAsteroid }}</p>
-		<p>{{ $element.AbsoluteMagnitudeH }}</p>
-		<br>
-		{{ end }}
-	</body>
-	`
-	renderer, _ := template.New("basic").Parse(templ)
+	/*
+		templ := `
+		<body>
+			{{ range $index, $element := . }}
+			<p>Asteroid Name: {{ $element.Name }}</p>
+			<p>Asteroid Designation: {{ $element.Designation }}</p>
+			<p>Asteroid Potentially Hazardous: {{ $element.IsPotentiallyHazardousAsteroid }}</p>
+			<p>Asteroid Magnitude:  {{ $element.AbsoluteMagnitudeH }}</p>
+			<p>Asteroid Size in KM's: {{ $element.AbsoluteMagnitudeH }}</p>
+			<p>More information at: {{ $element.NasaJplURL }}</p>
+			<br>
+			{{ end }}
+		</body>
+		`
+		renderer, _ := template.New("basic").Parse(templ)
+	*/
 
-	router := mux.NewRouter()
-	router.PathPrefix("/").Handler(http.HandlerFunc(func(response http.ResponseWriter, request *http.Request) {
-		renderer.Execute(response, objects)
-		return
-	}))
+	var renderer = template.Must(template.ParseFiles("index.html"))
 
-	//router.HandleFunc("/api", HelloWorld).Methods("GET")
-	// Serve files from this directory if no api routes are hit
-	//router.PathPrefix("/").Handler(http.FileServer(http.Dir("www")))
+	fs := http.FileServer(http.Dir("static/"))
+	http.Handle("/static/", http.StripPrefix("/static/", fs))
+
+	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		renderer.Execute(w, objects)
+	})
 
 	srv := &http.Server{
-		Handler: router,
-		Addr:    port,
+		Addr: port,
 		// Enforcement of timeouts
 		WriteTimeout: 15 * time.Second,
 		ReadTimeout:  15 * time.Second,
 	}
 	log.Println("Listening on port " + port + "...")
 	log.Fatalf("Fatal server error: %v", srv.ListenAndServe())
-}
-
-// HelloWorld API Reponse
-func HelloWorld(response http.ResponseWriter, request *http.Request) {
-	response.Write([]byte("Hello World!"))
-	return
 }
