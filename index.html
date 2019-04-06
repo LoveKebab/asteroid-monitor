@@ -1,19 +1,29 @@
 <!DOCTYPE html>
-<head>
+<html lang="en-US">
+  <head>
 	<link rel="stylesheet" type="text/css" href="static/stylesheet.css">
-</head> 
-<html>
-	<h1>Here be dangerous Asteroids!</h1>
-	<body>
-		{{ range $index, $element := . }}
-		<p>Asteroid Name: {{ $element.Name }}</p>
-		<p>Asteroid Designation: {{ $element.Designation }}</p>
-		<p>Asteroid Potentially Hazardous: {{ $element.IsPotentiallyHazardousAsteroid }}</p>
-		<p>Asteroid Magnitude:  {{ $element.AbsoluteMagnitudeH }}</p>
-		<p>Asteroid Size in KM's: {{ $element.AbsoluteMagnitudeH }}</p>
-		<p>More information at: {{ $element.NasaJplURL }}</p>
-		<br>
-		{{ end }}
-	</body>
+	<link href="https://fonts.googleapis.com/css?family=Encode+Sans" rel="stylesheet"> 
+    <style>
+      body {
+        font-family: 'Encode Sans', serif;
+        font-size: 48px;
+      }
+    </style>
+  </head>
+  <body>
+		<title>Hazardous Asteroid Tracking</title>
+			<ul>
+				<li>Hazardous Asteroid Tracking Data</li>
+				<li style="float:right"><a href="static/about.html">About</a></li>
+			</ul>
+			<br>
+					{{ range $index, $element := . }}
+					<p class="index">Asteroid Name: {{ $element.Name }}<br>
+					Asteroid Designation: {{ $element.Designation }}<br>
+					Asteroid Potentially Hazardous: {{ $element.IsPotentiallyHazardousAsteroid }}<br>
+					Asteroid Magnitude:  {{ $element.AbsoluteMagnitudeH }}<br>
+					Asteroid Size in KM's: {{ $element.AbsoluteMagnitudeH }}<br>
+					More information at: <a href="{{ $element.NasaJplURL }}">{{ $element.NasaJplURL }}</a></p>
+					{{ end }}
+  </body>
 </html>
-
