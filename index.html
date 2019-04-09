@@ -3,27 +3,27 @@
   <head>
 	<link rel="stylesheet" type="text/css" href="static/stylesheet.css">
 	<link href="https://fonts.googleapis.com/css?family=Encode+Sans" rel="stylesheet"> 
-    <style>
-      body {
-        font-family: 'Encode Sans', serif;
-        font-size: 48px;
-      }
-    </style>
   </head>
   <body>
-		<title>Hazardous Asteroid Tracking</title>
-			<ul>
-				<li>Hazardous Asteroid Tracking Data</li>
-				<li style="float:right"><a href="static/about.html">About</a></li>
-			</ul>
-			<br>
-					{{ range $index, $element := . }}
-					<p class="index">Asteroid Name: {{ $element.Name }}<br>
-					Asteroid Designation: {{ $element.Designation }}<br>
-					Asteroid Potentially Hazardous: {{ $element.IsPotentiallyHazardousAsteroid }}<br>
-					Asteroid Magnitude:  {{ $element.AbsoluteMagnitudeH }}<br>
-					Asteroid Size in KM's: {{ $element.AbsoluteMagnitudeH }}<br>
-					More information at: <a href="{{ $element.NasaJplURL }}">{{ $element.NasaJplURL }}</a></p>
-					{{ end }}
+		<article>
+			<main>
+				<header>
+					<h1 class="main">Hazardous Asteroid Tracking</h1>
+					<time datetime="2019-04-09">apr 09, 2019</time>
+				</header>
+						<p>{{ range $index, $element := . }}
+						<p class="index">Asteroid Name: {{ $element.Name }}<br>
+						Asteroid Designation: {{ $element.Designation }}<br>
+						Asteroid Potentially Hazardous: {{ $element.IsPotentiallyHazardousAsteroid }}<br>
+						Asteroid Magnitude:  {{ $element.AbsoluteMagnitudeH }}<br>
+						Asteroid Size in KM's: {{ $element.AbsoluteMagnitudeH }}<br>
+						More information at: <a href="{{ $element.NasaJplURL }}">{{ $element.NasaJplURL }}</a></p>
+						{{ end }}
+					</p>
+					<footer>
+							<p>report bugs on my <a href="https://github.com/LoveKebab/asteroid-monitor">github</a></p>
+					</footer>
+			</main>
+		</article>
   </body>
 </html>
