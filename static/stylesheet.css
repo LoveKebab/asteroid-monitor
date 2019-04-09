@@ -1,15 +1,16 @@
-h1 {
-    color:#e44d26; 
-    text-align: center;
-    font-family: "Courier New", Courier, monospace
-}
+html { font-size: 62.5%; } 
 
-p {
-    color:#e44d26;
-    text-align: left;
-    font-family: 'Courier New', Courier, monospace
+main {
+  margin: auto;
+  padding: 2.0rem;
 }
 
 body {
-    background-color: #263238
+  font-family: 'Encode Sans', serif;
+  font-size: 14px; font-size: 1.4rem; 
+}
+
+h1 {
+  font-family: 'Encode Sans', serif;
+  font-size: 2.4rem; 
 }
