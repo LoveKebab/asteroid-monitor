@@ -13,7 +13,7 @@ import (
 )
 
 const port = ":10443" // add to config
-const nasaURL = "https://api.nasa.gov/neo/rest/v1/neo/browse?api_key=%s"
+const nasaURL = "https://api.nasa.gov/neo/rest/v1/feed?start_date=%s&api_key=%s"
 
 // look into using viper
 
@@ -24,24 +24,21 @@ type conf struct {
 type nasaReturnData struct {
 	Links struct {
 		Next string `json:"next"`
+		Prev string `json:"prev"`
 		Self string `json:"self"`
 	} `json:"links"`
-	Page struct {
-		Size          int `json:"size"`
-		TotalElements int `json:"total_elements"`
-		TotalPages    int `json:"total_pages"`
-		Number        int `json:"number"`
-	} `json:"page"`
-	NearEarthObjects []nearEarth `json:"near_earth_objects"`
+	ElementCount     int                          `json:"element_count"`
+	NearEarthObjects map[string][]NearEarthObject `json:"near_earth_objects"`
 }
 
-type nearEarth struct {
+// NearEarthObject is a struct used to parse the map in nasaReturnData for NearEarthObjects
+type NearEarthObject struct {
 	Links struct {
 		Self string `json:"self"`
 	} `json:"links"`
+	ID                 string  `json:"id"`
 	NeoReferenceID     string  `json:"neo_reference_id"`
 	Name               string  `json:"name"`
-	Designation        string  `json:"designation"`
 	NasaJplURL         string  `json:"nasa_jpl_url"`
 	AbsoluteMagnitudeH float64 `json:"absolute_magnitude_h"`
 	EstimatedDiameter  struct {
@@ -79,38 +76,7 @@ type nearEarth struct {
 		} `json:"miss_distance"`
 		OrbitingBody string `json:"orbiting_body"`
 	} `json:"close_approach_data"`
-	OrbitalData struct {
-		OrbitID                   string `json:"orbit_id"`
-		OrbitDeterminationDate    string `json:"orbit_determination_date"`
-		FirstObservationDate      string `json:"first_observation_date"`
-		LastObservationDate       string `json:"last_observation_date"`
-		DataArcInDays             int    `json:"data_arc_in_days"`
-		ObservationsUsed          int    `json:"observations_used"`
-		OrbitUncertainty          string `json:"orbit_uncertainty"`
-		MinimumOrbitIntersection  string `json:"minimum_orbit_intersection"`
-		JupiterTisserandInvariant string `json:"jupiter_tisserand_invariant"`
-		EpochOsculation           string `json:"epoch_osculation"`
-		Eccentricity              string `json:"eccentricity"`
-		SemiMajorAxis             string `json:"semi_major_axis"`
-		Inclination               string `json:"inclination"`
-		AscendingNodeLongitude    string `json:"ascending_node_longitude"`
-		OrbitalPeriod             string `json:"orbital_period"`
-		PerihelionDistance        string `json:"perihelion_distance"`
-		PerihelionArgument        string `json:"perihelion_argument"`
-		AphelionDistance          string `json:"aphelion_distance"`
-		PerihelionTime            string `json:"perihelion_time"`
-		MeanAnomaly               string `json:"mean_anomaly"`
-		MeanMotion                string `json:"mean_motion"`
-		Equinox                   string `json:"equinox"`
-		OrbitClass                struct {
-			OrbitClassType        string `json:"orbit_class_type"`
-			OrbitClassDescription string `json:"orbit_class_description"`
-			OrbitClassRange       string `json:"orbit_class_range"`
-		} `json:"orbit_class"`
-	} `json:"orbital_data"`
-	IsSentryObject bool   `json:"is_sentry_object"`
-	NameLimited    string `json:"name_limited,omitempty"`
-	SentryData     string `json:"sentry_data,omitempty"`
+	IsSentryObject bool `json:"is_sentry_object"`
 }
 
 func (c *conf) getConf() *conf {
@@ -129,7 +95,8 @@ func (c *conf) getConf() *conf {
 
 func nasaNeoBrowse(c conf) (*nasaReturnData, error) {
 	apiKey := c.Apikey
-	var apiURL = fmt.Sprintf(nasaURL, apiKey)
+	startDate := time.Now().Format("2006-01-02")
+	var apiURL = fmt.Sprintf(nasaURL, startDate, apiKey)
 
 	request, err := http.NewRequest("GET", apiURL, nil)
 	if err != nil {
@@ -159,19 +126,17 @@ func main() {
 		panic(err)
 	}
 
-	objects := []nearEarth{}
-	for i, NearEarthObject := range nasaData.NearEarthObjects {
-		if NearEarthObject.IsPotentiallyHazardousAsteroid {
-			objects = append(objects, NearEarthObject)
-			fmt.Println("Asteroid Name:", NearEarthObject.Name)
-			fmt.Println("Designation:", NearEarthObject.Designation)
-			fmt.Println("Asteroid Potentially Hazardous:", NearEarthObject.IsPotentiallyHazardousAsteroid)
-			fmt.Println("Absolute Magnitude:", NearEarthObject.AbsoluteMagnitudeH)
-			fmt.Println("Size in KM's:", NearEarthObject.EstimatedDiameter.Kilometers.EstimatedDiameterMax)
-			for _, CloseApproachData := range nasaData.NearEarthObjects[i].CloseApproachData {
-				fmt.Println("Asteroid Speed in Kilometers Per Hour:", CloseApproachData.RelativeVelocity.KilometersPerHour)
+	objects := []NearEarthObject{}
+	for _, NearEarthData := range nasaData.NearEarthObjects {
+		for _, DeepNearEarthData := range NearEarthData {
+			if DeepNearEarthData.IsPotentiallyHazardousAsteroid {
+				objects = append(objects, DeepNearEarthData)
+				fmt.Println("Asteroid Name:", DeepNearEarthData.Name)
+				fmt.Println("Asteroid Potentially Hazardous:", DeepNearEarthData.IsPotentiallyHazardousAsteroid)
+				fmt.Println("Absolute Magnitude:", DeepNearEarthData.AbsoluteMagnitudeH)
+				fmt.Println("Size in KM's:", DeepNearEarthData.EstimatedDiameter.Kilometers.EstimatedDiameterMax)
+				fmt.Println("More information at: " + DeepNearEarthData.NasaJplURL + "\n")
 			}
-			fmt.Println("More information at: " + NearEarthObject.NasaJplURL + "\n")
 		}
 	}
 
