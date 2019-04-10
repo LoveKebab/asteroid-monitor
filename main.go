@@ -12,13 +12,13 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-const port = ":10443" // add to config
 const nasaURL = "https://api.nasa.gov/neo/rest/v1/feed?start_date=%s&api_key=%s"
 
 // look into using viper
 
 type conf struct {
 	Apikey string `yaml:"apikey"`
+	Port   string `yaml:"port"`
 }
 
 type nasaReturnData struct {
@@ -122,6 +122,9 @@ func main() {
 	var c conf
 	c.getConf()
 	nasaData, err := nasaNeoBrowse(c)
+
+	port := c.Port
+
 	if err != nil {
 		panic(err)
 	}
