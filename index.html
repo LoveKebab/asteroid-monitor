@@ -13,10 +13,13 @@
 				</header>
 						<p>{{ range $index, $element := . }}
 						<p class="index">Asteroid Name: {{ $element.Name }}<br>
+						Close Approach Date: {{ range $i, $e := $element.CloseApproachData }} {{ $e.CloseApproachDate }} {{ end }}<br>
 						Asteroid Potentially Hazardous: {{ $element.IsPotentiallyHazardousAsteroid }}<br>
 						Asteroid Magnitude:  {{ $element.AbsoluteMagnitudeH }}<br>
+						Asteroid Projected Miss Distance: {{ range $i, $e := $element.CloseApproachData }} {{ $e.MissDistance.Kilometers }} {{ end }} KM's<br>
 						Asteroid Size in KM's: {{ $element.EstimatedDiameter.Kilometers.EstimatedDiameterMax }}<br>
-						More information at: <a href="{{ $element.NasaJplURL }}">{{ $element.NasaJplURL }}</a></p>
+						More information at: <a href="{{ $element.NasaJplURL }}">{{ $element.NasaJplURL }}</a><br>
+					</p>
 						{{ end }}
 					</p>
 					<footer>

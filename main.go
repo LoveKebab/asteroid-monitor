@@ -138,6 +138,10 @@ func main() {
 				fmt.Println("Asteroid Potentially Hazardous:", DeepNearEarthData.IsPotentiallyHazardousAsteroid)
 				fmt.Println("Absolute Magnitude:", DeepNearEarthData.AbsoluteMagnitudeH)
 				fmt.Println("Size in KM's:", DeepNearEarthData.EstimatedDiameter.Kilometers.EstimatedDiameterMax)
+				for _, approach := range DeepNearEarthData.CloseApproachData {
+					fmt.Println("Close Approach Date:", approach.CloseApproachDate)
+					fmt.Println("Total Projected Distance Asteroid Will Miss Earth:", approach.MissDistance.Kilometers, "KM's")
+				}
 				fmt.Println("More information at: " + DeepNearEarthData.NasaJplURL + "\n")
 			}
 		}
