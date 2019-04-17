@@ -3,12 +3,16 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"image/png"
+	"io"
 	"io/ioutil"
 	"log"
 	"net/http"
+	"os"
 	"text/template"
 	"time"
 
+	"github.com/wcharczuk/go-chart"
 	"gopkg.in/yaml.v2"
 )
 
@@ -118,13 +122,28 @@ func nasaNeoBrowse(c conf) (*nasaReturnData, error) {
 	return &nasaData, err
 }
 
+func drawChartWide(objects []NearEarthObject) (w io.Writer, err error) {
+	graph := chart.Chart{
+		Width: 1920, //this overrides the default.
+		Series: []chart.Series{
+			chart.ContinuousSeries{
+				XValues: []float64{1.0, 2.0, 3.0, 4.0},
+				YValues: []float64{1.0, 2.0, 3.0, 4.0},
+			},
+		},
+	}
+
+	graph.Render(chart.PNG, w)
+
+	return w, err
+}
+
 func main() {
 	var c conf
 	c.getConf()
 	nasaData, err := nasaNeoBrowse(c)
 
 	port := c.Port
-
 	if err != nil {
 		panic(err)
 	}
@@ -145,6 +164,21 @@ func main() {
 				fmt.Println("More information at: " + DeepNearEarthData.NasaJplURL + "\n")
 			}
 		}
+	}
+
+	// below is the start of saving a chart as a file
+	out, err := os.Create("./output.png")
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
+
+	derp, err := drawChartWide(objects)
+
+	err = png.Encode(out, derp)
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(1)
 	}
 
 	renderer := template.Must(template.ParseFiles("index.html"))
