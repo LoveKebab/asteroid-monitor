@@ -3,12 +3,14 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"log"
 	"net/http"
 	"text/template"
 	"time"
 
+	"github.com/wcharczuk/go-chart"
 	"gopkg.in/yaml.v2"
 )
 
@@ -118,22 +120,69 @@ func nasaNeoBrowse(c conf) (*nasaReturnData, error) {
 	return &nasaData, err
 }
 
-func main() {
-	var c conf
-	c.getConf()
-	nasaData, err := nasaNeoBrowse(c)
-
-	port := c.Port
-
-	if err != nil {
-		panic(err)
+func drawChartWide(objects []NearEarthObject, output io.Writer) (err error) {
+	cs := chart.ContinuousSeries{
+		XValues: []float64{}, // []float64{1.0, 2.0, 3.0, 4.0},
+		YValues: []float64{}, // []float64{1.0, 2.0, 3.0, 4.0},
 	}
 
-	objects := []NearEarthObject{}
+	for i, object := range objects {
+		cs.XValues = append(cs.XValues, float64(i))
+		cs.YValues = append(cs.YValues, object.EstimatedDiameter.Kilometers.EstimatedDiameterMax)
+	}
+
+	graph := chart.Chart{
+		Width: 1920, //this overrides the default.
+		Series: []chart.Series{
+			cs,
+		},
+	}
+
+	return graph.Render(chart.PNG, output)
+}
+
+func main() {
+	var server Server
+	server.Config.getConf()
+	port := server.Config.Port
+	server.Renderer = template.Must(template.ParseFiles("index.html"))
+
+	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("static"))))
+	http.HandleFunc("/", server.Index)
+	http.HandleFunc("/refresh", server.Refresh)
+	http.HandleFunc("/image", server.Image)
+
+	srv := &http.Server{
+		Addr: port,
+		// Enforcement of timeouts
+		WriteTimeout: 15 * time.Second,
+		ReadTimeout:  15 * time.Second,
+	}
+	log.Println("Listening on port " + port + "...")
+	log.Fatalf("Fatal server error: %v", srv.ListenAndServe())
+}
+
+type Server struct {
+	Config conf
+	Objects []NearEarthObject
+	Renderer *template.Template
+}
+
+func (s *Server) Index(w http.ResponseWriter, r *http.Request) {
+	s.Renderer.Execute(w, s.Objects)
+}
+
+func (s *Server) Refresh(w http.ResponseWriter, r *http.Request) {
+	nasaData, err := nasaNeoBrowse(s.Config)
+	if err != nil {
+		//handle
+	}
+
+	s.Objects = []NearEarthObject{}
 	for _, NearEarthData := range nasaData.NearEarthObjects {
 		for _, DeepNearEarthData := range NearEarthData {
 			if DeepNearEarthData.IsPotentiallyHazardousAsteroid {
-				objects = append(objects, DeepNearEarthData)
+				s.Objects = append(s.Objects, DeepNearEarthData)
 				fmt.Println("Asteroid Name:", DeepNearEarthData.Name)
 				fmt.Println("Asteroid Potentially Hazardous:", DeepNearEarthData.IsPotentiallyHazardousAsteroid)
 				fmt.Println("Absolute Magnitude:", DeepNearEarthData.AbsoluteMagnitudeH)
@@ -146,20 +195,9 @@ func main() {
 			}
 		}
 	}
+	http.Error(w, "", http.StatusNoContent)
+}
 
-	renderer := template.Must(template.ParseFiles("index.html"))
-
-	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("static"))))
-	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		renderer.Execute(w, objects)
-	})
-
-	srv := &http.Server{
-		Addr: port,
-		// Enforcement of timeouts
-		WriteTimeout: 15 * time.Second,
-		ReadTimeout:  15 * time.Second,
-	}
-	log.Println("Listening on port " + port + "...")
-	log.Fatalf("Fatal server error: %v", srv.ListenAndServe())
+func (s *Server) Image(w http.ResponseWriter, r *http.Request) {
+	_ = drawChartWide(s.Objects, w)
 }
